@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: keycloak
+  name: keycloak
+spec:
+  podManagementPolicy: Parallel
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  serviceName: keycloak-headless
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: role
+                  operator: NotIn
+                  values:
+                  - test
+                matchLabels:
+                  app: keycloak
+                  release: keycloak
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: role
+                operator: NotIn
+                values:
+                - test
+              matchLabels:
+                app: keycloak
+                release: keycloak
+            topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: wait-for-postgresql
+          image: alpine:3.8
+          command:
+            - sh
+            - -c
+            - |
+              until printf "." && nc -z -w 2 $(POSTGRESQL) 5432; do
+                  sleep 2;
+              done;
+
+              echo 'PostgreSQL OK ✓'
+      containers:
+      - command:
+        - /scripts/keycloak.sh
+        env:
+        - name: KEYCLOAK_USER
+          value: keycloak
+        - name: KEYCLOAK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: keycloak-http
+        - name: DB_VENDOR
+          value: postgres
+        - name: DB_ADDR
+          value: $(POSTGRESQL)
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_DATABASE
+          value: keycloak
+        - name: DB_USER
+          value: keycloak
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgresql
+              key: postgres-password
+        - name: KEYCLOAK_IMPORT
+          value: /realm/realm-export.json
+        image: jboss/keycloak:4.5.0.Final
+        livenessProbe:
+          httpGet:
+            path: /auth/
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+        name: keycloak
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /auth/realms/master
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+        volumeMounts:
+        - mountPath: /scripts
+          name: scripts
+        - mountPath: /realm
+          name: realm-export
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      volumes:
+      - configMap:
+          defaultMode: 365
+          name: keycloak
+        name: scripts
+      - configMap:
+          name: realm-export
+        name: realm-export
+  volumeClaimTemplates:

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: cert-manager
+  name: cert-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: cert-manager
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9402"
+        prometheus.io/scrape: "true"
+      labels:
+        name: cert-manager
+    spec:
+      serviceAccountName: cert-manager
+      containers:
+      - name: cert-manager
+        args:
+        - --cluster-resource-namespace=$(POD_NAMESPACE)
+        - --default-issuer-kind=ClusterIssuer
+        - --default-issuer-name=$(CLUSTER_ISSUER_NAME)
+        - --leader-election-namespace=$(POD_NAMESPACE)
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: bitnami/cert-manager:0.5.2-r37
+        ports:
+        - containerPort: 9402
+          name: prometheus
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi

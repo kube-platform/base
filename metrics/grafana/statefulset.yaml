@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: grafana
+  serviceName: grafana
+  template:
+    metadata:
+      labels:
+        name: grafana
+    spec:
+      initContainers:
+      - name: datasource-creator
+        image: dibi/envsubst
+        env:
+        - name: PROMETHEUS_MONITORING
+          value: $(PROMETHEUS_MONITORING)
+        volumeMounts:
+          - name: datasources
+            mountPath: /processed
+          - name: datasources-source
+            mountPath: /workdir
+            readOnly: true
+      containers:
+      - env:
+        - name: GF_AUTH_PROXY_AUTO_SIGN_UP
+          value: "true"
+        - name: GF_AUTH_PROXY_ENABLED
+          value: "true"
+        - name: GF_AUTH_PROXY_HEADERS
+          value: Email:X-Auth-Request-Email
+        - name: GF_AUTH_PROXY_HEADER_NAME
+          value: X-Auth-Request-User
+        - name: GF_AUTH_PROXY_HEADER_PROPERTY
+          value: username
+        - name: GF_EXPLORE_ENABLED
+          value: "true"
+        - name: GF_LOG_LEVEL
+          value: warn
+        - name: GF_LOG_MODE
+          value: console
+        - name: GF_METRICS_ENABLED
+          value: "true"
+        - name: GF_SERVER_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: kubeplatform-config
+              key: DOMAIN
+        - name: GF_SERVER_PROTOCOL
+          value: http
+        - name: GF_SERVER_ROOT_URL
+          value: https://grafana.$GF_SERVER_DOMAIN
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        - name: GF_USERS_AUTO_ASSIGN_ORG
+          value: "true"
+        - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE
+          value: Admin
+        image: bitnami/grafana:5.4.2-r12
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: dashboard
+        name: grafana
+        ports:
+        - containerPort: 3000
+          name: dashboard
+          protocol: TCP
+        readinessProbe:
+          initialDelaySeconds: 30
+          successThreshold: 2
+          tcpSocket:
+            port: dashboard
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /opt/bitnami/grafana/data
+          name: datadir
+        - mountPath: /opt/bitnami/grafana/conf/provisioning/datasources/
+          name: datasources
+          readOnly: true
+      securityContext:
+        fsGroup: 1001
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: datasources
+        emptyDir: {}
+      - configMap:
+          name: grafana-prometheus-datasource
+        name: datasources-source
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi

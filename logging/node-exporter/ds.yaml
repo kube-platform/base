@@ -1,0 +1,76 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: node-exporter
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9100"
+        prometheus.io/scrape: "true"
+      labels:
+        name: node-exporter
+    spec:
+      containers:
+      - name: node-exporter
+        args:
+        - --collector.filesystem.ignored-fs-types=^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs)?$
+        - --collector.filesystem.ignored-mount-points=^(/rootfs|/host)?/(sys|proc|dev|host|etc)($|/)
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
+        image: bitnami/node-exporter:0.17.0-r1
+        livenessProbe:
+          httpGet:
+            path: /
+            port: scrape
+            scheme: HTTP
+        ports:
+        - containerPort: 9100
+          hostPort: 9100
+          name: scrape
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: scrape
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 2
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /host/proc
+          name: procfs
+          readOnly: true
+        - mountPath: /rootfs
+          name: root
+          readOnly: true
+        - mountPath: /host/sys
+          name: sysfs
+          readOnly: true
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      volumes:
+      - hostPath:
+          path: /proc
+          type: ""
+        name: procfs
+      - hostPath:
+          path: /
+          type: ""
+        name: root
+      - hostPath:
+          path: /sys
+          type: ""
+        name: sysfs
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate

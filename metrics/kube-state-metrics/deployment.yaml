@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-state-metrics
+spec:
+  minReadySeconds: 30
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      name: kube-state-metrics
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        name: kube-state-metrics
+    spec:
+      containers:
+      - args:
+        - --collectors=daemonsets,deployments,jobs,limitranges,nodes,persistentvolumeclaims,pods,replicasets,replicationcontrollers,resourcequotas,services,statefulsets
+        image: quay.io/coreos/kube-state-metrics:v1.1.0
+        name: ksm
+        ports:
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        resources:
+          limits:
+            memory: 150Mi
+          requests:
+            memory: 150Mi
+      - args:
+        - --container=ksm
+        - --cpu=100m
+        - --deployment=$(KUBE_STATE_DEPLOYMENT)
+        - --extra-cpu=1m
+        - --extra-memory=2Mi
+        - --memory=100Mi
+        - --threshold=5
+        command:
+        - /pod_nanny
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: k8s.gcr.io/addon-resizer:1.8.4
+        name: addon-resizer
+        resources:
+          limits:
+            memory: 30Mi
+          requests:
+            memory: 30Mi
+      serviceAccountName: kube-state-metrics

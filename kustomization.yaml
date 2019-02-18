@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+- nginx-ingress
+- logging
+- metrics
+- keycloak
+- postgresql
+  
+resources:
+- cert-manager/deployment.yaml
+- cert-manager/sa.yaml
+- cert-manager/crds.yaml
+- cert-manager/rbac.yaml
+- cert-manager/cluster-issuer.yaml
+
+- external-dns/deployment.yaml
+- external-dns/sa.yaml
+- external-dns/rbac.yaml
+
+- oauth2-proxy/deployment.yaml
+- oauth2-proxy/hpa.yaml
+- oauth2-proxy/service.yaml
+
+vars:
+# this VAR reference needs a CM defined in the overlay kustomization.yaml
+- name: PLATFORM_CONFIG_DOMAIN
+  objref:
+    kind: ConfigMap
+    name: kubeplatform-config
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.DOMAIN
+
+commonLabels:
+  kubeplatform: v1

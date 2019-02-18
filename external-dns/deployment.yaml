@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: external-dns
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "7979"
+        prometheus.io/scrape: "true"
+      labels:
+        name: external-dns
+    spec:
+      containers:
+      - name: external-dns
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /google/credentials.json
+        image: bitnami/external-dns:0.5.9-r19
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: metrics
+            scheme: HTTP
+        ports:
+        - containerPort: 7979
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: metrics
+            scheme: HTTP
+        volumeMounts:
+        - mountPath: /google
+          name: gcreds
+          readOnly: true
+      serviceAccountName: external-dns
+      volumes:
+      - name: gcreds
+        secret:
+          defaultMode: 420
+          secretName: external-dns-credentials

@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- pvc.yaml
+- service.yaml
+- deployment.yaml
+
+secretGenerator:
+- name: postgresql
+  literals:	
+  - postgres-password=UyH2EccNqK
+  type: Opaque
+
+configMapGenerator:
+- name: postgresql

@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+
+- prometheus/cm.yaml
+- prometheus/rbac.yaml
+- prometheus/sa.yaml
+- prometheus/statefulset.yaml
+- prometheus/service.yaml
+- prometheus/ingress.yaml
+
+- alertmanager/cm.yaml
+- alertmanager/service.yaml
+- alertmanager/statefulset.yaml
+
+- grafana/cm.yaml
+- grafana/ingress.yaml
+- grafana/service.yaml
+- grafana/statefulset.yaml
+
+- kube-state-metrics/deployment.yaml
+- kube-state-metrics/rbac.yaml
+- kube-state-metrics/sa.yaml
+
+vars:
+- name: PROMETHEUS_MONITORING
+  objref:
+    kind: Service
+    name: prometheus
+    apiVersion: v1
+- name: KUBE_STATE_DEPLOYMENT
+  objref:
+    kind: Deployment
+    name: kube-state-metrics
+    apiVersion: apps/v1

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcp-services
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: udp-services
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-ingress
+data:
+  disable-ipv6: "false"
+  enable-vts-status: "true"
+  hsts: "true"
+  no-auth-locations: /.well-known/acme-challenge,/oauth2
+  proxy-connect-timeout: "15"
+  proxy-buffer-size: "64k"

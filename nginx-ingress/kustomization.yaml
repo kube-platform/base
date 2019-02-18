@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- deployment.yaml
+- sa.yaml
+- service.yaml
+- configmaps.yaml
+- hpa.yaml
+- rbac.yaml
+
+vars:
+- name: TCP_SERVICES_CONFIGMAP
+  objref:
+    kind: ConfigMap
+    name: tcp-services
+    apiVersion: v1
+- name: UDP_SERVICES_CONFIGMAP
+  objref:
+    kind: ConfigMap
+    name: udp-services
+    apiVersion: v1
+- name: NGINX_INGRESS_CONFIGMAP
+  objref:
+    kind: ConfigMap
+    name: nginx-ingress
+    apiVersion: v1

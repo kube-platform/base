@@ -1,0 +1,52 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User, X-Auth-Request-Email
+    nginx.ingress.kubernetes.io/auth-signin: https://$host/oauth2/start?rd=$request_uri
+    nginx.ingress.kubernetes.io/auth-url: https://$host/oauth2/auth
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      auth_request_set $auth_upstream_1 $upstream_cookie_auth_1;
+      access_by_lua_block {
+        if ngx.var.auth_upstream_1 ~= "" then
+          ngx.header["Set-Cookie"] = "auth_1=" .. ngx.var.auth_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+        end
+      }
+  name: prometheus
+spec:
+  rules:
+  - host: prometheus.$(PLATFORM_CONFIG_DOMAIN)
+    http:
+      paths:
+      - backend:
+          serviceName: prometheus
+          servicePort: 9090
+        path: /
+      - backend:
+          serviceName: alertmanager
+          servicePort: 9093
+        path: /alertmanager
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  name: prometheus-oauth
+spec:
+  rules:
+  - host: prometheus.$(PLATFORM_CONFIG_DOMAIN)
+    http:
+      paths:
+      - path: /oauth2
+        backend:
+          serviceName: oauth2-proxy
+          servicePort: 4180
+  tls:
+  - hosts:
+    - prometheus.$(PLATFORM_CONFIG_DOMAIN)
+    secretName: prometheus-tls

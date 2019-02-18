@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-prometheus-datasource
+data:
+  kubeplatform.yml: |
+    apiVersion: 1
+    datasources:
+    - access: proxy
+      isDefault: true
+      name: KubePlatform Prometheus
+      type: prometheus
+      url: http://$PROMETHEUS_MONITORING:9090/

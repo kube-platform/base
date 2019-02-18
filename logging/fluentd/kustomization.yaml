@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ds.yaml
+- sa.yaml
+- rbac.yaml
+
+configMapGenerator:
+- name: fluentd-es-configd
+  files:
+  - containers.input.conf
+  - monitoring.conf
+  - system.input.conf
+  - system.conf
+- name: fluentd-es
+  files:
+  - fluentd.conf

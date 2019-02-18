@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: alertmanager
+  serviceName: alertmanager
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /alertmanager/metrics
+        prometheus.io/port: "9093"
+        prometheus.io/scrape: "true"
+      labels:
+        name: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        args:
+        - --config.file=/opt/bitnami/alertmanager/conf/config.yml
+        - --storage.path=/opt/bitnami/alertmanager/data
+        - --web.external-url=http://prometheus.$(DOMAIN)/alertmanager
+        image: bitnami/alertmanager:0.15.3-r43
+        livenessProbe:
+          httpGet:
+            path: /alertmanager/-/healthy
+            port: 9093
+            scheme: HTTP
+          initialDelaySeconds: 60
+        envFrom:
+        - configMapRef:
+            name: kubeplatform-config
+        ports:
+        - containerPort: 9093
+          name: alertmanager
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /alertmanager/-/healthy
+            port: 9093
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 3
+        volumeMounts:
+        - mountPath: /opt/bitnami/alertmanager/conf
+          name: config
+          readOnly: true
+        - mountPath: /opt/bitnami/alertmanager/data
+          name: storage
+      - name: configmap-reload
+        args:
+        - --volume-dir=/config
+        - --webhook-method=POST
+        - --webhook-url=http://localhost:9093/alertmanager/-/reload
+        image: jimmidyson/configmap-reload:v0.2.2
+        volumeMounts:
+        - mountPath: /config
+          name: config
+          readOnly: true
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: alertmanager
+        name: config
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi

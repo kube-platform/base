@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: prometheus
+  serviceName: prometheus
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9090"
+        prometheus.io/scrape: "true"
+      labels:
+        name: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        args:
+        - --config.file=/opt/bitnami/prometheus/conf/custom/prometheus.yml
+        - --storage.tsdb.retention=183d
+        - --web.console.libraries=/opt/bitnami/prometheus/conf/console_libraries
+        - --web.console.templates=/opt/bitnami/prometheus/conf/consoles
+        - --web.external-url=http://prometheus.$(DOMAIN)/
+        - --web.enable-lifecycle
+        image: bitnami/prometheus:2.6.0-r2
+        envFrom:
+        - configMapRef:
+            name: kubeplatform-config
+        livenessProbe:
+          httpGet:
+            path: /
+            port: web
+            scheme: HTTP
+          initialDelaySeconds: 300
+        ports:
+        - containerPort: 9090
+          name: web
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: web
+            scheme: HTTP
+          initialDelaySeconds: 10
+        resources:
+          requests:
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /opt/bitnami/prometheus/conf/custom
+          name: config
+          readOnly: true
+        - mountPath: /opt/bitnami/prometheus/data
+          name: data
+      - args:
+        - --volume-dir=/config
+        - --webhook-method=POST
+        - --webhook-url=http://localhost:9090/-/reload
+        image: jimmidyson/configmap-reload:v0.2.2
+        name: configmap-reload
+        volumeMounts:
+        - mountPath: /config
+          name: config
+          readOnly: true
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: prometheus
+      terminationGracePeriodSeconds: 300
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: prometheus
+        name: config
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        name: data
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
