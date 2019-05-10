@@ -23,6 +23,8 @@ resources:
 - kube-state-metrics/rbac.yaml
 - kube-state-metrics/sa.yaml
 
+- node-exporter/ds.yaml
+
 vars:
 - name: PROMETHEUS_MONITORING
   objref:
