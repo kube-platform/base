@@ -4,6 +4,7 @@ kind: Kustomization
 bases:
 - fluentd
 - elasticsearch
+- curator
 
 resources:
 - kibana/deployment.yaml

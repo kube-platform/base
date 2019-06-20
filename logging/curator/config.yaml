@@ -1,0 +1,4 @@
+client:
+  hosts: 
+    -  elasticsearch-logging 
+  port: 9200

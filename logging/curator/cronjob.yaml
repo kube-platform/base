@@ -1,0 +1,33 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: elasticsearch-curator
+  labels:
+    app: elasticsearch-curator
+    release: 5.7.6
+spec:
+  schedule: "0 1 * * *"
+  jobTemplate:
+    metadata:
+      labels:
+        app: elasticsearch-curator
+        release: 5.7.6
+    spec:
+      template:
+        metadata:
+          labels:
+            app: elasticsearch-curator
+            release: 5.7.6
+        spec:
+          volumes:
+            - name: config-volume
+              configMap:
+                name: elasticsearch-curator-config
+          restartPolicy: Never
+          containers:
+            - name: elasticsearch-curator
+              image: untergeek/curator:5.7.6
+              args: [ "--config", "/etc/es-curator/config.yaml", "/etc/es-curator/action_file.yaml" ]
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/es-curator
