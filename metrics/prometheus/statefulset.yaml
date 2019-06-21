@@ -21,7 +21,7 @@ spec:
       - name: prometheus
         args:
         - --config.file=/opt/bitnami/prometheus/conf/custom/prometheus.yml
-        - --storage.tsdb.retention=183d
+        - --storage.tsdb.retention=90d
         - --web.console.libraries=/opt/bitnami/prometheus/conf/console_libraries
         - --web.console.templates=/opt/bitnami/prometheus/conf/consoles
         - --web.external-url=http://prometheus.$(DOMAIN)/
@@ -84,4 +84,4 @@ spec:
       - ReadWriteOnce
       resources:
         requests:
-          storage: 10Gi
+          storage: 50Gi
