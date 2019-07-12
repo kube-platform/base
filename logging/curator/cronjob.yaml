@@ -31,3 +31,6 @@ spec:
               volumeMounts:
                 - name: config-volume
                   mountPath: /etc/es-curator
+              env:
+                - name: ES_SERVICE_NAME
+                  value: $(ES_SERVICE_NAME)

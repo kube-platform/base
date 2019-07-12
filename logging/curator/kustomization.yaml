@@ -9,3 +9,10 @@ configMapGenerator:
   files:
   - action_file.yaml
   - config.yaml
+
+vars:
+  - name: ES_SERVICE_NAME
+    objref:
+      kind: Service
+      name: elasticsearch-logging
+      apiVersion: v1
