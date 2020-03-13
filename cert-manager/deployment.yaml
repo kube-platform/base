@@ -22,17 +22,19 @@ spec:
       containers:
       - name: cert-manager
         args:
+        - --v=2
         - --cluster-resource-namespace=$(POD_NAMESPACE)
         - --default-issuer-kind=ClusterIssuer
         - --default-issuer-name=$(CLUSTER_ISSUER_NAME)
         - --leader-election-namespace=$(POD_NAMESPACE)
+        - --webhook-namespace=$(POD_NAMESPACE)
         env:
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: bitnami/cert-manager:0.5.2-r37
+        image: quay.io/jetstack/cert-manager-controller:v0.13.1
         ports:
         - containerPort: 9402
           name: prometheus
