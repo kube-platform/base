@@ -118,4 +118,4 @@ spec:
       - configMap:
           name: realm-export
         name: realm-export
-  volumeClaimTemplates:
+  volumeClaimTemplates: []
