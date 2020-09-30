@@ -21,7 +21,7 @@ spec:
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /google/credentials.json
-        image: bitnami/external-dns:0.5.9-r19
+        image: bitnami/external-dns:0.7.3
         livenessProbe:
           httpGet:
             path: /healthz

@@ -23,7 +23,7 @@ spec:
         - --collector.filesystem.ignored-mount-points=^(/rootfs|/host)?/(sys|proc|dev|host|etc)($|/)
         - --path.procfs=/host/proc
         - --path.sysfs=/host/sys
-        image: bitnami/node-exporter:0.17.0-r1
+        image: bitnami/node-exporter:1.0.1
         livenessProbe:
           httpGet:
             path: /

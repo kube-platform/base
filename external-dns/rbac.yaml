@@ -4,17 +4,15 @@ metadata:
   name: external-dns
 rules:
 - apiGroups: [""]
-  resources: ["services"]
+  resources: ["services","endpoints","pods"]
   verbs: ["get","watch","list"]
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get","watch","list"]
-- apiGroups: ["extensions"] 
+- apiGroups: ["extensions","networking.k8s.io"]
   resources: ["ingresses"] 
   verbs: ["get","watch","list"]
 - apiGroups: [""]
   resources: ["nodes"]
   verbs: ["list"]
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -25,6 +23,6 @@ roleRef:
   kind: ClusterRole
   name: external-dns
 subjects:
-- kind: ServiceAccount
-  name: external-dns
-  namespace: kubeplatform
+  - kind: ServiceAccount
+    name: external-dns
+    namespace: kubeplatform

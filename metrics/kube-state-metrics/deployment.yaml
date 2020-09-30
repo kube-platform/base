@@ -20,7 +20,7 @@ spec:
       containers:
       - args:
         - --collectors=daemonsets,deployments,jobs,limitranges,nodes,persistentvolumeclaims,pods,replicasets,replicationcontrollers,resourcequotas,services,statefulsets
-        image: quay.io/coreos/kube-state-metrics:v1.1.0
+        image: quay.io/coreos/kube-state-metrics:v1.9.7
         name: ksm
         ports:
         - containerPort: 8080

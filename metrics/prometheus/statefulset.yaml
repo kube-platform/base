@@ -26,7 +26,7 @@ spec:
         - --web.console.templates=/opt/bitnami/prometheus/conf/consoles
         - --web.external-url=http://prometheus.$(DOMAIN)/
         - --web.enable-lifecycle
-        image: bitnami/prometheus:2.6.0-r2
+        image: bitnami/prometheus:2.21.0
         envFrom:
         - configMapRef:
             name: kubeplatform-config
@@ -59,7 +59,7 @@ spec:
         - --volume-dir=/config
         - --webhook-method=POST
         - --webhook-url=http://localhost:9090/-/reload
-        image: jimmidyson/configmap-reload:v0.2.2
+        image: jimmidyson/configmap-reload:v0.4.0
         name: configmap-reload
         volumeMounts:
         - mountPath: /config

@@ -38,7 +38,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: bitnami/nginx-ingress-controller:0.22.0
+        image: bitnami/nginx-ingress-controller:0.35.0
         livenessProbe:
           httpGet:
             path: /healthz

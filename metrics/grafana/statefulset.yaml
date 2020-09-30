@@ -15,7 +15,7 @@ spec:
     spec:
       initContainers:
       - name: datasource-creator
-        image: dibi/envsubst
+        image: dibi/envsubst:1
         env:
         - name: PROMETHEUS_MONITORING
           value: $(PROMETHEUS_MONITORING)
@@ -60,7 +60,7 @@ spec:
           value: "true"
         - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE
           value: Admin
-        image: bitnami/grafana:5.4.2-r12
+        image: bitnami/grafana:7.2.0
         livenessProbe:
           initialDelaySeconds: 60
           tcpSocket:

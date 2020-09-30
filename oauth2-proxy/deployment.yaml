@@ -13,39 +13,39 @@ spec:
         name: oauth2-proxy
     spec:
       containers:
-      - name: oauth2-proxy
-        env:
-        - name: OAUTH2_PROXY_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              key: client_id
-              name: oauth2-proxy
-        - name: OAUTH2_PROXY_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: client_secret
-              name: oauth2-proxy
-        - name: OAUTH2_PROXY_COOKIE_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: cookie_secret
-              name: oauth2-proxy
-        image: bitnami/oauth2-proxy:3.1.0
-        livenessProbe:
-          httpGet:
-            path: /ping
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-        ports:
-        - containerPort: 4180
-          name: http
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /ping
-            port: http
-            scheme: HTTP
-        resources:
-          requests:
-            cpu: 10m
+        - name: oauth2-proxy
+          env:
+            - name: OAUTH2_PROXY_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: client_id
+                  name: oauth2-proxy
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: client_secret
+                  name: oauth2-proxy
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: cookie_secret
+                  name: oauth2-proxy
+          image: bitnami/oauth2-proxy:6.1.1
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+          ports:
+            - containerPort: 4180
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              scheme: HTTP
+          resources:
+            requests:
+              cpu: 10m

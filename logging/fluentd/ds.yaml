@@ -16,6 +16,10 @@ spec:
       labels:
         name: fluentd-es
     spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
       - env:
         - name: ES_HOST
@@ -23,7 +27,7 @@ spec:
         - name: FLUENTD_OPT
           value: -o /opt/bitnami/fluentd/logs/fluentd.log --log-rotate-age 5 --log-rotate-size
             104857600 --no-supervisor
-        image: bitnami/fluentd:1.3.2-r13
+        image: bitnami/fluentd:1.3.3
         name: fluentd-es
         resources:
           limits:
@@ -31,7 +35,9 @@ spec:
           requests:
             memory: 200Mi
         securityContext:
-          runAsUser: 0
+          privileged: true
+          capabilities:
+            drop: ['ALL']
         volumeMounts:
         - mountPath: /opt/bitnami/fluentd/conf
           name: config

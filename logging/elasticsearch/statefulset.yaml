@@ -24,115 +24,116 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  k8s-app: elasticsearch-logging
-                  name: elasticsearch-logging
-              topologyKey: failure-domain.beta.kubernetes.io/zone
-            weight: 50
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  k8s-app: elasticsearch-logging
-                  name: elasticsearch-logging
-              topologyKey: kubernetes.io/hostname
-            weight: 100
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    k8s-app: elasticsearch-logging
+                    name: elasticsearch-logging
+                topologyKey: failure-domain.beta.kubernetes.io/zone
+              weight: 50
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    k8s-app: elasticsearch-logging
+                    name: elasticsearch-logging
+                topologyKey: kubernetes.io/hostname
+              weight: 100
       containers:
-      - name: elasticsearch-logging
-        env:
-        - name: ELASTICSEARCH_CLUSTER_HOSTS
-          value: $(ELASTICSEARCH_LOGGING)
-        - name: ELASTICSEARCH_CLUSTER_NAME
-          value: elasticsearch-cluster
-        - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
-          value: "2"
-        - name: ELASTICSEARCH_NODE_PORT_NUMBER
-          value: "9300"
-        - name: ELASTICSEARCH_PORT_NUMBER
-          value: "9200"
-        - name: ES_JAVA_OPTS
-          value: -Djava.security.properties=/opt/bitnami/java/lib/security/java.security.custom
-            -Xms1200m -Xmx1200m -XshowSettings:vm
-        image: bitnami/elasticsearch:5.6.14-r3
-        livenessProbe:
-          httpGet:
-            path: /_cluster/health?local=true
-            port: db
-            scheme: HTTP
-          initialDelaySeconds: 180
-        ports:
-        - containerPort: 9200
-          name: db
-          protocol: TCP
-        - containerPort: 9300
-          name: transport
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /_cluster/health?local=true
-            port: db
-            scheme: HTTP
-          initialDelaySeconds: 120
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 2Gi
-        securityContext:
-          runAsUser: 1001
-        volumeMounts:
-        - mountPath: /bitnami/elasticsearch/data
-          name: data
-        - mountPath: /opt/bitnami/java/lib/security/java.security.custom
-          name: java-security
-          readOnly: true
-          subPath: java.security
-      - args:
-        - --es.all=false
-        - --es.timeout=20s
-        - --es.uri=http://localhost:9200/
-        - --web.listen-address=:9102
-        - --web.telemetry-path=/metrics
-        command:
-        - elasticsearch_exporter
-        image: justwatch/elasticsearch_exporter:1.0.1
-        livenessProbe:
-          httpGet:
-            path: /
-            port: metrics
-            scheme: HTTP
-        name: prom-exporter
-        ports:
-        - containerPort: 9102
-          name: metrics
-          protocol: TCP
+        - name: elasticsearch-logging
+          env:
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: $(ELASTICSEARCH_LOGGING)
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: elasticsearch-cluster
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "2"
+            - name: ELASTICSEARCH_NODE_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_PORT_NUMBER
+              value: "9200"
+            - name: ES_JAVA_OPTS
+              value:
+                -Djava.security.properties=/opt/bitnami/java/lib/security/java.security.custom
+                -Xms1200m -Xmx1200m -XshowSettings:vm
+          image: bitnami/elasticsearch:6.8.12
+          livenessProbe:
+            httpGet:
+              path: /_cluster/health?local=true
+              port: db
+              scheme: HTTP
+            initialDelaySeconds: 180
+          ports:
+            - containerPort: 9200
+              name: db
+              protocol: TCP
+            - containerPort: 9300
+              name: transport
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health?local=true
+              port: db
+              scheme: HTTP
+            initialDelaySeconds: 120
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 2Gi
+          securityContext:
+            runAsUser: 1001
+          volumeMounts:
+            - mountPath: /bitnami/elasticsearch/data
+              name: data
+            - mountPath: /opt/bitnami/java/lib/security/java.security.custom
+              name: java-security
+              readOnly: true
+              subPath: java.security
+        - args:
+            - --es.all=false
+            - --es.timeout=20s
+            - --es.uri=http://localhost:9200/
+            - --web.listen-address=:9102
+            - --web.telemetry-path=/metrics
+          command:
+            - elasticsearch_exporter
+          image: justwatch/elasticsearch_exporter:1.0.1
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+              scheme: HTTP
+          name: prom-exporter
+          ports:
+            - containerPort: 9102
+              name: metrics
+              protocol: TCP
       initContainers:
-      - command:
-        - /sbin/sysctl
-        - -w
-        - vm.max_map_count=262144
-        image: alpine:3.6
-        name: elasticsearch-logging-init
-        securityContext:
-          privileged: true
+        - command:
+            - /sbin/sysctl
+            - -w
+            - vm.max_map_count=262144
+          image: alpine:3.6
+          name: elasticsearch-logging-init
+          securityContext:
+            privileged: true
       securityContext:
         fsGroup: 1001
       serviceAccountName: elasticsearch-logging
       terminationGracePeriodSeconds: 300
       volumes:
-      - configMap:
-          defaultMode: 420
-          name: java-elasticsearch-logging
-        name: java-security
+        - configMap:
+            defaultMode: 420
+            name: java-elasticsearch-logging
+          name: java-security
   volumeClaimTemplates:
-  - metadata:
-      labels:
+    - metadata:
+        labels:
+          name: data
         name: data
-      name: data
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 100Gi
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi

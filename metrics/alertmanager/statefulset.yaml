@@ -23,7 +23,7 @@ spec:
         - --config.file=/opt/bitnami/alertmanager/conf/config.yml
         - --storage.path=/opt/bitnami/alertmanager/data
         - --web.external-url=http://prometheus.$(DOMAIN)/alertmanager
-        image: bitnami/alertmanager:0.15.3-r43
+        image: bitnami/alertmanager:0.21.0
         livenessProbe:
           httpGet:
             path: /alertmanager/-/healthy
@@ -55,7 +55,7 @@ spec:
         - --volume-dir=/config
         - --webhook-method=POST
         - --webhook-url=http://localhost:9093/alertmanager/-/reload
-        image: jimmidyson/configmap-reload:v0.2.2
+        image: jimmidyson/configmap-reload:v0.4.0
         volumeMounts:
         - mountPath: /config
           name: config
